@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using MemoryGame.Models;
 
 namespace MemoryGame.Services
@@ -81,6 +82,25 @@ namespace MemoryGame.Services
             _matchedPairs = 0;
             _firstSelectedCard = null;
             _secondSelectedCard = null;
+        }
+
+        /// <summary>
+        /// Starts a game with a pre-existing set of cards (for loading saved games)
+        /// </summary>
+        public void StartGame(ObservableCollection<Card> cards)
+        {
+            // Set the total pairs
+            _totalPairs = cards.Count / 2;
+            
+            // Count matched pairs
+            _matchedPairs = cards.Count(c => c.IsMatched) / 2;
+            
+            // Reset selected cards
+            _firstSelectedCard = null;
+            _secondSelectedCard = null;
+            
+            // Set game as in progress
+            _isGameInProgress = true;
         }
 
         public void EndGame(bool isWon)

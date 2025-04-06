@@ -22,12 +22,13 @@ namespace MemoryGame.ViewModels
         private int _selectedCategory = 1;
         private string _remainingTimeDisplay;
         private bool _isGameEnded;
+        private User _currentUser;
 
         // Services
         private readonly GameService _gameService;
-
         private readonly GameTimerService _timerService;
         private readonly DialogVM _dialogViewModel;
+        private readonly GameSaveService _gameSaveService;
 
         public int SelectedRows
         {
@@ -94,6 +95,12 @@ namespace MemoryGame.ViewModels
 
         public bool IsGameInProgress => _gameService.IsGameInProgress;
 
+        public User CurrentUser
+        {
+            get => _currentUser;
+            set => SetProperty(ref _currentUser, value);
+        }
+
         // Commands
         public ICommand SelectCategoryCommand { get; }
 
@@ -112,6 +119,7 @@ namespace MemoryGame.ViewModels
             _gameService = new GameService();
             _timerService = new GameTimerService();
             _dialogViewModel = new DialogVM();
+            _gameSaveService = new GameSaveService();
 
             // Subscribe to service events
             _gameService.GameEnded += OnGameEnded;
@@ -133,6 +141,23 @@ namespace MemoryGame.ViewModels
             SelectCardCommand = new RelayCommand<object>(ExecuteSelectCard);
         }
 
+        public GameVM(User user) : this()
+        {
+            CurrentUser = user;
+            
+            // Check if the user has a saved game
+            if (_gameSaveService.HasSavedGame(user.Username))
+            {
+                // Ask if the user wants to load the saved game
+                if (_dialogViewModel.ShowYesNoDialog(
+                    "You have a saved game. Do you want to load it?", 
+                    "Load Saved Game"))
+                {
+                    ExecuteOpenGame();
+                }
+            }
+        }
+
         #region Event Handlers
 
         private void OnTimeUpdated(object sender, int remainingTime)
@@ -151,6 +176,31 @@ namespace MemoryGame.ViewModels
             _timerService.Stop();
             IsGameEnded = true;
             OnPropertyChanged(nameof(IsGameInProgress));
+
+            // Update player statistics
+            if (CurrentUser != null)
+            {
+                // Load all users to find the current one
+                var userService = new UserService();
+                var users = userService.LoadUsers();
+                var user = users.FirstOrDefault(u => u.Username == CurrentUser.Username);
+                
+                if (user != null)
+                {
+                    // Update statistics
+                    user.GamesPlayed++;
+                    if (isWon)
+                    {
+                        user.GamesWon++;
+                    }
+                    
+                    // Save updated statistics
+                    userService.SaveUsers(users);
+                    
+                    // Update current user
+                    CurrentUser = user;
+                }
+            }
 
             // Show game end dialog and check if player wants to play again
             if (_dialogViewModel.ShowGameEndDialog(isWon))
@@ -236,20 +286,103 @@ namespace MemoryGame.ViewModels
 
         private void ExecuteOpenGame()
         {
-            // Logic to open a saved game
-            _dialogViewModel.ShowMessage("Open saved game", "Open Game");
+            // Check if current user is set
+            if (CurrentUser == null)
+            {
+                _dialogViewModel.ShowMessage("No user is logged in.", "Error", true);
+                return;
+            }
+
+            // Check if there's a saved game for the current user
+            if (!_gameSaveService.HasSavedGame(CurrentUser.Username))
+            {
+                _dialogViewModel.ShowMessage("No saved game found for the current user.", "No Saved Game");
+                return;
+            }
+
+            // Load the saved game
+            SavedGame savedGame = _gameSaveService.LoadGame(CurrentUser.Username);
+            if (savedGame == null)
+            {
+                _dialogViewModel.ShowMessage("Failed to load saved game.", "Error", true);
+                return;
+            }
+
+            // Update game settings from saved game
+            SelectedCategory = savedGame.SelectedCategory;
+            SelectedRows = savedGame.Rows;
+            SelectedColumns = savedGame.Columns;
+            ActiveRows = savedGame.Rows;
+            ActiveColumns = savedGame.Columns;
+            
+            // Set the remaining time
+            GameTimeInSeconds = savedGame.RemainingTimeInSeconds;
+            
+            // Create cards from saved state
+            ObservableCollection<Card> restoredCards = new ObservableCollection<Card>();
+            foreach (var savedCard in savedGame.Cards)
+            {
+                restoredCards.Add(new Card
+                {
+                    Id = savedCard.Id,
+                    ImagePath = savedCard.ImagePath,
+                    IsFlipped = savedCard.IsFlipped,
+                    IsMatched = savedCard.IsMatched
+                });
+            }
+            Cards = restoredCards;
+            
+            // Start the game
+            _gameService.StartGame();
+            
+            // Start the timer
+            _timerService.Start();
+            
+            // Update UI
+            OnPropertyChanged(nameof(IsGameInProgress));
+            
+            _dialogViewModel.ShowMessage("Game loaded successfully!", "Game Loaded");
         }
 
         private void ExecuteSaveGame()
         {
-            // Logic to save the current game
-            _dialogViewModel.ShowMessage("Game saved", "Save Game");
+            // Check if there's a game in progress
+            if (!IsGameInProgress)
+            {
+                _dialogViewModel.ShowMessage("No game in progress to save.", "Save Game");
+                return;
+            }
+            
+            // Check if current user is set
+            if (CurrentUser == null)
+            {
+                _dialogViewModel.ShowMessage("No user is logged in.", "Error", true);
+                return;
+            }
+            
+            // Calculate elapsed time
+            int elapsedTimeInSeconds = GameTimeInSeconds - _timerService.RemainingTimeInSeconds;
+            
+            // Save the game
+            _gameSaveService.SaveGame(
+                CurrentUser.Username,
+                SelectedCategory,
+                ActiveRows,
+                ActiveColumns,
+                _timerService.RemainingTimeInSeconds,
+                elapsedTimeInSeconds,
+                Cards
+            );
+            
+            _dialogViewModel.ShowMessage("Game saved successfully!", "Game Saved");
         }
 
         private void ExecuteStatistics()
         {
-            // Logic to show statistics
-            _dialogViewModel.ShowMessage("Statistics", "Game Statistics");
+            // Create and show the statistics window
+            var statisticsWindow = new StatisticsWindow();
+            statisticsWindow.Owner = Application.Current.MainWindow;
+            statisticsWindow.ShowDialog();
         }
 
         private void ExecuteExit(object parameter)

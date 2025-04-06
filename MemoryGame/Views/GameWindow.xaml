@@ -13,10 +13,6 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
 
-    <Window.DataContext>
-        <vm:GameVM />
-    </Window.DataContext>
-
     <Window.Resources>
         <!-- Converters -->
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

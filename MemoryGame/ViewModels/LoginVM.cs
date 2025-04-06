@@ -121,8 +121,8 @@ namespace MemoryGame.ViewModels
         {
             if (SelectedUser == null) return;
 
-            // Open the game window
-            var gameWindow = new GameWindow();
+            // Open the game window with the selected user
+            var gameWindow = new GameWindow(SelectedUser);
             gameWindow.Show();
 
             // Close the login window
