@@ -11,7 +11,7 @@
         ResizeMode="NoResize">
 
     <Window.DataContext>
-        <vm:LoginViewModel />
+        <vm:LoginVM />
     </Window.DataContext>
 
     <Grid Margin="20">
@@ -46,10 +46,15 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="{Binding ImagePath}"
-                                       Width="35"
+                                <Image Width="35"
                                        Height="35"
-                                       Margin="0,0,10,0" />
+                                       Margin="0,0,10,0">
+                                    <Image.Source>
+                                        <BitmapImage UriSource="{Binding ImagePath}" 
+                                                    CacheOption="OnLoad" 
+                                                    CreateOptions="IgnoreImageCache"/>
+                                    </Image.Source>
+                                </Image>
                                 <TextBlock Text="{Binding Username}"
                                            VerticalAlignment="Center" />
                             </StackPanel>

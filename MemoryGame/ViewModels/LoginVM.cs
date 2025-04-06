@@ -3,10 +3,14 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using MemoryGame.Models;
 using MemoryGame.Services;
+using MemoryGame.Commands;
+using System.Collections.Generic;
+using System.Windows;
+using MemoryGame.Views;
 
 namespace MemoryGame.ViewModels
 {
-    public class LoginViewModel : ViewModelBase
+    public class LoginVM : BaseVM
     {
         private readonly UserService _userService;
         private ObservableCollection<User> _users;
@@ -64,25 +68,20 @@ namespace MemoryGame.ViewModels
         public ICommand PlayCommand { get; }
         public ICommand SelectImageCommand { get; }
 
-        public LoginViewModel()
+        public LoginVM()
         {
             _userService = new UserService();
             Users = new ObservableCollection<User>(_userService.LoadUsers());
-            
-            CreateUserCommand = new RelayCommand(CreateUser, CanCreateUser);
-            DeleteUserCommand = new RelayCommand(DeleteUser, () => SelectedUser != null);
-            PlayCommand = new RelayCommand(Play, () => SelectedUser != null);
-            SelectImageCommand = new RelayCommand(SelectImage);
-        }
 
-        private bool CanCreateUser()
-        {
-            return !string.IsNullOrWhiteSpace(NewUsername) && !string.IsNullOrWhiteSpace(NewUserImagePath);
+            CreateUserCommand = new RelayCommand(CreateUser);
+            DeleteUserCommand = new RelayCommand(DeleteUser);
+            PlayCommand = new RelayCommand(Play);
+            SelectImageCommand = new RelayCommand(SelectImage);
         }
 
         private void CreateUser()
         {
-            if (!CanCreateUser()) return;
+            if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(NewUserImagePath)) return;
 
             var savedImagePath = _userService.SaveUserImage(NewUserImagePath, NewUsername);
             var newUser = new User
@@ -93,7 +92,7 @@ namespace MemoryGame.ViewModels
 
             Users.Add(newUser);
             _userService.SaveUsers(new List<User>(Users));
-            
+
             NewUsername = string.Empty;
             NewUserImagePath = string.Empty;
         }
@@ -102,15 +101,39 @@ namespace MemoryGame.ViewModels
         {
             if (SelectedUser == null) return;
 
-            _userService.DeleteUser(SelectedUser);
-            Users.Remove(SelectedUser);
-            _userService.SaveUsers(new List<User>(Users));
+            // Make a local copy to avoid reference issues
+            var userToDelete = SelectedUser;
+            
+            // Clear the selected user first to release any image references
             SelectedUser = null;
+            
+            // Force garbage collection to release file handles before deletion
+            System.GC.Collect();
+            System.GC.WaitForPendingFinalizers();
+            
+            // Now delete the user
+            _userService.DeleteUser(userToDelete);
+            Users.Remove(userToDelete);
+            _userService.SaveUsers(new List<User>(Users));
         }
 
         private void Play()
         {
-            // TODO: Navigate to game window
+            if (SelectedUser == null) return;
+
+            // Open the game window
+            var gameWindow = new GameWindow();
+            gameWindow.Show();
+
+            // Close the login window
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is LoginWindow loginWindow)
+                {
+                    loginWindow.Close();
+                    break;
+                }
+            }
         }
 
         private void SelectImage()
@@ -126,4 +149,4 @@ namespace MemoryGame.ViewModels
             }
         }
     }
-} 
+}

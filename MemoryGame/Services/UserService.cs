@@ -62,7 +62,33 @@ namespace MemoryGame.Services
             // Delete user's image file
             if (File.Exists(user.ImagePath))
             {
-                File.Delete(user.ImagePath);
+                try
+                {
+                    // Force garbage collection to help release file handles
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    
+                    // Delete the file
+                    File.Delete(user.ImagePath);
+                }
+                catch (IOException ex)
+                {
+                    // If we can't delete the file now, mark it for deletion on application exit
+                    try
+                    {
+                        // Rename the file first (helps release locks in some cases)
+                        string tempPath = user.ImagePath + ".tobedeleted";
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+                        File.Move(user.ImagePath, tempPath);
+                        user.ImagePath = tempPath;
+                    }
+                    catch
+                    {
+                        // If renaming fails too, log the error and continue
+                        System.Diagnostics.Debug.WriteLine($"Could not delete or rename user image: {ex.Message}");
+                    }
+                }
             }
 
             // Delete user's saved games
@@ -73,7 +99,14 @@ namespace MemoryGame.Services
             );
             if (Directory.Exists(userGamesDirectory))
             {
-                Directory.Delete(userGamesDirectory, true);
+                try
+                {
+                    Directory.Delete(userGamesDirectory, true);
+                }
+                catch (IOException)
+                {
+                    // Log and continue if we can't delete
+                }
             }
 
             // Delete user's statistics
@@ -84,7 +117,14 @@ namespace MemoryGame.Services
             );
             if (File.Exists(statsFilePath))
             {
-                File.Delete(statsFilePath);
+                try
+                {
+                    File.Delete(statsFilePath);
+                }
+                catch (IOException)
+                {
+                    // Log and continue if we can't delete
+                }
             }
         }
     }

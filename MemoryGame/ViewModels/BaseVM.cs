@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace MemoryGame.ViewModels
 {
-    public class ViewModelBase : INotifyPropertyChanged
+    public class BaseVM : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
