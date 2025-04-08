@@ -301,7 +301,7 @@ namespace MemoryGame.ViewModels
             }
 
             // Load the saved game
-            SavedGame savedGame = _gameSaveService.LoadGame(CurrentUser.Username);
+            Game savedGame = _gameSaveService.LoadGame(CurrentUser.Username);
             if (savedGame == null)
             {
                 _dialogViewModel.ShowMessage("Failed to load saved game.", "Error", true);
@@ -320,14 +320,14 @@ namespace MemoryGame.ViewModels
             
             // Create cards from saved state
             ObservableCollection<Card> restoredCards = new ObservableCollection<Card>();
-            foreach (var savedCard in savedGame.Cards)
+            foreach (var gameCard in savedGame.Cards)
             {
                 restoredCards.Add(new Card
                 {
-                    Id = savedCard.Id,
-                    ImagePath = savedCard.ImagePath,
-                    IsFlipped = savedCard.IsFlipped,
-                    IsMatched = savedCard.IsMatched
+                    Id = gameCard.Id,
+                    ImagePath = gameCard.ImagePath,
+                    IsFlipped = gameCard.IsFlipped,
+                    IsMatched = gameCard.IsMatched
                 });
             }
             Cards = restoredCards;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MemoryGame.Models
 {
-    public class SavedGame
+    public class Game
     {
         // User who saved the game
         public string Username { get; set; }
@@ -18,9 +18,9 @@ namespace MemoryGame.Models
         public int ElapsedTimeInSeconds { get; set; }
         
         // Board state
-        public List<SavedCard> Cards { get; set; }
+        public List<GameCard> Cards { get; set; }
         
-        public SavedGame()
+        public Game()
         {
             Username = string.Empty;
             SelectedCategory = 1;
@@ -28,12 +28,12 @@ namespace MemoryGame.Models
             Columns = 4;
             RemainingTimeInSeconds = 60;
             ElapsedTimeInSeconds = 0;
-            Cards = new List<SavedCard>();
+            Cards = new List<GameCard>();
         }
     }
     
     // Simplified card model for saving
-    public class SavedCard
+    public class GameCard
     {
         public int Id { get; set; }
         public string ImagePath { get; set; }

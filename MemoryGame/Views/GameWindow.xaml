@@ -16,7 +16,7 @@
     <Window.Resources>
         <!-- Converters -->
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" IsInverted="True" />
 
         <!-- Card Template -->
         <DataTemplate DataType="{x:Type models:Card}">

@@ -36,7 +36,7 @@ namespace MemoryGame.Services
             ObservableCollection<Card> cards)
         {
             // Create a saved game object
-            var savedGame = new SavedGame
+            var game = new Game
             {
                 Username = username,
                 SelectedCategory = selectedCategory,
@@ -44,7 +44,7 @@ namespace MemoryGame.Services
                 Columns = columns,
                 RemainingTimeInSeconds = remainingTimeInSeconds,
                 ElapsedTimeInSeconds = elapsedTimeInSeconds,
-                Cards = cards.Select(c => new SavedCard
+                Cards = cards.Select(c => new GameCard
                 {
                     Id = c.Id,
                     ImagePath = c.ImagePath,
@@ -55,7 +55,7 @@ namespace MemoryGame.Services
             
             // Save the game to a file
             string filePath = GetSaveFilePath(username);
-            string json = JsonSerializer.Serialize(savedGame, new JsonSerializerOptions 
+            string json = JsonSerializer.Serialize(game, new JsonSerializerOptions 
             { 
                 WriteIndented = true 
             });
@@ -66,7 +66,7 @@ namespace MemoryGame.Services
         /// <summary>
         /// Loads a saved game for a specific user
         /// </summary>
-        public SavedGame LoadGame(string username)
+        public Game LoadGame(string username)
         {
             string filePath = GetSaveFilePath(username);
             
@@ -76,7 +76,7 @@ namespace MemoryGame.Services
             }
             
             string json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<SavedGame>(json);
+            return JsonSerializer.Deserialize<Game>(json);
         }
         
         /// <summary>
