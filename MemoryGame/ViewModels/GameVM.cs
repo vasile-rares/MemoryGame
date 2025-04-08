@@ -125,6 +125,9 @@ namespace MemoryGame.ViewModels
             _gameService.GameEnded += OnGameEnded;
             _timerService.TimeUpdated += OnTimeUpdated;
             _timerService.TimeExpired += OnTimeExpired;
+            
+            // Subscribe to the new CardFlipped event
+            _gameService.CardFlipped += OnCardFlipped;
 
             // Initialize cards collection
             Cards = new ObservableCollection<Card>();
@@ -180,25 +183,13 @@ namespace MemoryGame.ViewModels
             // Update player statistics
             if (CurrentUser != null)
             {
-                // Load all users to find the current one
                 var userService = new UserService();
-                var users = userService.LoadUsers();
-                var user = users.FirstOrDefault(u => u.Username == CurrentUser.Username);
+                User updatedUser = userService.UpdateUserStatistics(CurrentUser.Username, isWon);
                 
-                if (user != null)
+                if (updatedUser != null)
                 {
-                    // Update statistics
-                    user.GamesPlayed++;
-                    if (isWon)
-                    {
-                        user.GamesWon++;
-                    }
-                    
-                    // Save updated statistics
-                    userService.SaveUsers(users);
-                    
                     // Update current user
-                    CurrentUser = user;
+                    CurrentUser = updatedUser;
                 }
             }
 
@@ -206,6 +197,19 @@ namespace MemoryGame.ViewModels
             if (_dialogViewModel.ShowGameEndDialog(isWon))
             {
                 ExecuteNewGame();
+            }
+        }
+
+        private void OnCardFlipped(object sender, Card card)
+        {
+            // Force UI update for the given card
+            int cardIndex = Cards.IndexOf(card);
+            if (cardIndex >= 0)
+            {
+                // Replace the card with itself to trigger collection update
+                Card updatedCard = Cards[cardIndex];
+                Cards.RemoveAt(cardIndex);
+                Cards.Insert(cardIndex, updatedCard);
             }
         }
 
@@ -318,22 +322,12 @@ namespace MemoryGame.ViewModels
             // Set the remaining time
             GameTimeInSeconds = savedGame.RemainingTimeInSeconds;
             
-            // Create cards from saved state
-            ObservableCollection<Card> restoredCards = new ObservableCollection<Card>();
-            foreach (var gameCard in savedGame.Cards)
-            {
-                restoredCards.Add(new Card
-                {
-                    Id = gameCard.Id,
-                    ImagePath = gameCard.ImagePath,
-                    IsFlipped = gameCard.IsFlipped,
-                    IsMatched = gameCard.IsMatched
-                });
-            }
+            // Create card collection from saved cards
+            ObservableCollection<Card> restoredCards = new ObservableCollection<Card>(savedGame.Cards);
             Cards = restoredCards;
             
-            // Start the game
-            _gameService.StartGame();
+            // Start the game with the restored cards
+            _gameService.StartGame(Cards);
             
             // Start the timer
             _timerService.Start();

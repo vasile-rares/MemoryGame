@@ -25,16 +25,16 @@
                     CommandParameter="{Binding}">
                 <Grid>
                     <Border Background="SteelBlue"
-                            Visibility="{Binding IsFlipped, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                            Visibility="{Binding IsFlipped, Converter={StaticResource InverseBooleanToVisibilityConverter}, Mode=OneWay}">
                     </Border>
-                    <Border Visibility="{Binding IsFlipped, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Image Source="{Binding ImagePath}" Stretch="Fill" />
+                    <Border Visibility="{Binding IsFlipped, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                        <Image Source="{Binding ImagePath, Mode=OneWay}" Stretch="Fill" />
                     </Border>
                 </Grid>
                 <Button.Style>
                     <Style TargetType="Button">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsMatched}" Value="True">
+                            <DataTrigger Binding="{Binding IsMatched, Mode=OneWay}" Value="True">
                                 <Setter Property="Visibility" Value="Hidden" />
                             </DataTrigger>
                         </Style.Triggers>

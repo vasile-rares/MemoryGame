@@ -16,6 +16,9 @@ namespace MemoryGame.Services
 
         public event EventHandler<Card[]> CardsMismatched;
 
+        // Add event for card flipping
+        public event EventHandler<Card> CardFlipped;
+
         private Card _firstSelectedCard;
         private Card _secondSelectedCard;
         private int _matchedPairs = 0;
@@ -116,6 +119,9 @@ namespace MemoryGame.Services
 
             // Flip the card
             selectedCard.IsFlipped = true;
+            
+            // Notify about the card flipping
+            CardFlipped?.Invoke(this, selectedCard);
 
             // Check if this is the first card selected
             if (_firstSelectedCard == null)
@@ -135,6 +141,11 @@ namespace MemoryGame.Services
                     // Cards match
                     _firstSelectedCard.IsMatched = true;
                     _secondSelectedCard.IsMatched = true;
+                    
+                    // Notify about match status change
+                    CardFlipped?.Invoke(this, _firstSelectedCard);
+                    CardFlipped?.Invoke(this, _secondSelectedCard);
+                    
                     _matchedPairs++;
 
                     Card[] matchedCards = new Card[] { _firstSelectedCard, _secondSelectedCard };
@@ -163,11 +174,15 @@ namespace MemoryGame.Services
                 if (!_firstSelectedCard.IsMatched)
                 {
                     _firstSelectedCard.IsFlipped = false;
+                    // Notify about flipping back
+                    CardFlipped?.Invoke(this, _firstSelectedCard);
                 }
 
                 if (!_secondSelectedCard.IsMatched)
                 {
                     _secondSelectedCard.IsFlipped = false;
+                    // Notify about flipping back
+                    CardFlipped?.Invoke(this, _secondSelectedCard);
                 }
 
                 // Set this card as the first selected card

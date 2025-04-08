@@ -45,6 +45,27 @@ namespace MemoryGame.Services
             File.WriteAllText(_usersFilePath, json);
         }
 
+        public User UpdateUserStatistics(string username, bool gameWon)
+        {
+            var users = LoadUsers();
+            var user = users.Find(u => u.Username == username);
+            
+            if (user != null)
+            {
+                // Update statistics
+                user.GamesPlayed++;
+                if (gameWon)
+                {
+                    user.GamesWon++;
+                }
+                
+                // Save updated statistics
+                SaveUsers(users);
+            }
+            
+            return user;
+        }
+
         public string SaveUserImage(string sourceImagePath, string username)
         {
             var extension = Path.GetExtension(sourceImagePath);

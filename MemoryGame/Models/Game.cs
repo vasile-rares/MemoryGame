@@ -18,7 +18,7 @@ namespace MemoryGame.Models
         public int ElapsedTimeInSeconds { get; set; }
         
         // Board state
-        public List<GameCard> Cards { get; set; }
+        public List<Card> Cards { get; set; }
         
         public Game()
         {
@@ -28,16 +28,7 @@ namespace MemoryGame.Models
             Columns = 4;
             RemainingTimeInSeconds = 60;
             ElapsedTimeInSeconds = 0;
-            Cards = new List<GameCard>();
+            Cards = new List<Card>();
         }
-    }
-    
-    // Simplified card model for saving
-    public class GameCard
-    {
-        public int Id { get; set; }
-        public string ImagePath { get; set; }
-        public bool IsFlipped { get; set; }
-        public bool IsMatched { get; set; }
     }
 } 

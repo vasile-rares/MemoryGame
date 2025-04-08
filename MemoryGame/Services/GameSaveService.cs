@@ -44,13 +44,7 @@ namespace MemoryGame.Services
                 Columns = columns,
                 RemainingTimeInSeconds = remainingTimeInSeconds,
                 ElapsedTimeInSeconds = elapsedTimeInSeconds,
-                Cards = cards.Select(c => new GameCard
-                {
-                    Id = c.Id,
-                    ImagePath = c.ImagePath,
-                    IsFlipped = c.IsFlipped,
-                    IsMatched = c.IsMatched
-                }).ToList()
+                Cards = cards.ToList()
             };
             
             // Save the game to a file
