@@ -3,6 +3,9 @@ using System.Windows;
 
 namespace MemoryGame.Views
 {
+    /// <summary>
+    /// Interaction logic for NewGameDialog.xaml
+    /// </summary>
     public partial class NewGameDialog : Window
     {
         public int GameTime { get; private set; }

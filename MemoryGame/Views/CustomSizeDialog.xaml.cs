@@ -3,6 +3,9 @@ using System.Windows;
 
 namespace MemoryGame.Views
 {
+    /// <summary>
+    /// Interaction logic for CustomSizeDialog.xaml
+    /// </summary>
     public partial class CustomSizeDialog : Window
     {
         public int Rows { get; private set; }

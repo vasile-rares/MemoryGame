@@ -31,7 +31,6 @@ namespace MemoryGame.Services
             List<Card> newCards = new List<Card>();
             for (int i = 1; i <= _totalPairs; i++)
             {
-                // Create two cards with the same image (a pair)
                 string imagePath = $"pack://application:,,,/Images/Category{categoryId}/card{i}.jpg";
 
                 newCards.Add(new Card
@@ -77,22 +76,15 @@ namespace MemoryGame.Services
             _secondSelectedCard = null;
         }
 
-        /// <summary>
-        /// Starts a game with a pre-existing set of cards (for loading saved games)
-        /// </summary>
         public void StartGame(ObservableCollection<Card> cards)
         {
-            // Set the total pairs
             _totalPairs = cards.Count / 2;
-            
-            // Count matched pairs
+
             _matchedPairs = cards.Count(c => c.IsMatched) / 2;
-            
-            // Reset selected cards
+
             _firstSelectedCard = null;
             _secondSelectedCard = null;
-            
-            // Set game as in progress
+
             _isGameInProgress = true;
         }
 
@@ -106,38 +98,32 @@ namespace MemoryGame.Services
             if (!_isGameInProgress || selectedCard == null || selectedCard.IsFlipped || selectedCard.IsMatched)
                 return;
 
-            // Flip the card
             selectedCard.IsFlipped = true;
-            
+
             // Notify about the card flipping
             onCardFlipped?.Invoke(selectedCard);
 
-            // Check if this is the first card selected
             if (_firstSelectedCard == null)
             {
                 _firstSelectedCard = selectedCard;
                 return;
             }
 
-            // Check if this is the second card selected
             if (_secondSelectedCard == null && selectedCard != _firstSelectedCard)
             {
                 _secondSelectedCard = selectedCard;
 
-                // Check if the cards match
                 if (_firstSelectedCard.ImagePath == _secondSelectedCard.ImagePath)
                 {
-                    // Cards match
                     _firstSelectedCard.IsMatched = true;
                     _secondSelectedCard.IsMatched = true;
-                    
+
                     // Notify about match status change
                     onCardFlipped?.Invoke(_firstSelectedCard);
                     onCardFlipped?.Invoke(_secondSelectedCard);
-                    
+
                     _matchedPairs++;
 
-                    // Reset selected cards
                     _firstSelectedCard = null;
                     _secondSelectedCard = null;
 
@@ -147,10 +133,6 @@ namespace MemoryGame.Services
                         EndGame(true);
                         onGameEnded?.Invoke(true);
                     }
-                }
-                else
-                {
-                    // Cards don't match - they will be flipped back in the next turn
                 }
             }
             else if (_secondSelectedCard != null)

@@ -17,7 +17,7 @@ namespace MemoryGame.Services
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "MemoryGame"
             );
-            
+
             _usersFilePath = Path.Combine(appDataPath, "users.json");
             _userImagesDirectory = Path.Combine(appDataPath, "UserImages");
 
@@ -38,9 +38,9 @@ namespace MemoryGame.Services
 
         public void SaveUsers(List<User> users)
         {
-            var json = JsonSerializer.Serialize(users, new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
+            var json = JsonSerializer.Serialize(users, new JsonSerializerOptions
+            {
+                WriteIndented = true
             });
             File.WriteAllText(_usersFilePath, json);
         }
@@ -49,20 +49,18 @@ namespace MemoryGame.Services
         {
             var users = LoadUsers();
             var user = users.Find(u => u.Username == username);
-            
+
             if (user != null)
             {
-                // Update statistics
                 user.GamesPlayed++;
                 if (gameWon)
                 {
                     user.GamesWon++;
                 }
-                
-                // Save updated statistics
+
                 SaveUsers(users);
             }
-            
+
             return user;
         }
 
@@ -78,9 +76,9 @@ namespace MemoryGame.Services
 
         public void DeleteUser(User user)
         {
-            if (user == null) return;
+            if (user == null)
+                return;
 
-            // Delete user's image file
             if (File.Exists(user.ImagePath))
             {
                 try
@@ -88,8 +86,7 @@ namespace MemoryGame.Services
                     // Force garbage collection to help release file handles
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                    
-                    // Delete the file
+
                     File.Delete(user.ImagePath);
                 }
                 catch (IOException ex)
@@ -97,7 +94,6 @@ namespace MemoryGame.Services
                     // If we can't delete the file now, mark it for deletion on application exit
                     try
                     {
-                        // Rename the file first (helps release locks in some cases)
                         string tempPath = user.ImagePath + ".tobedeleted";
                         if (File.Exists(tempPath))
                             File.Delete(tempPath);
@@ -106,7 +102,6 @@ namespace MemoryGame.Services
                     }
                     catch
                     {
-                        // If renaming fails too, log the error and continue
                         System.Diagnostics.Debug.WriteLine($"Could not delete or rename user image: {ex.Message}");
                     }
                 }
@@ -126,7 +121,6 @@ namespace MemoryGame.Services
                 }
                 catch (IOException)
                 {
-                    // Log and continue if we can't delete
                 }
             }
 
@@ -144,9 +138,8 @@ namespace MemoryGame.Services
                 }
                 catch (IOException)
                 {
-                    // Log and continue if we can't delete
                 }
             }
         }
     }
-} 
+}

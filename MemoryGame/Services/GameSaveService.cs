@@ -32,7 +32,6 @@ namespace MemoryGame.Services
             int elapsedTimeInSeconds,
             ObservableCollection<Card> cards)
         {
-            // Create a saved game object
             var game = new Game
             {
                 Username = username,
@@ -44,7 +43,6 @@ namespace MemoryGame.Services
                 Cards = cards.ToList()
             };
 
-            // Save the game to a file
             string filePath = GetSaveFilePath(username);
             string json = JsonSerializer.Serialize(game, new JsonSerializerOptions
             {
