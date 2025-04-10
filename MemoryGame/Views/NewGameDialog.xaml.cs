@@ -10,11 +10,10 @@ namespace MemoryGame.Views
         public NewGameDialog(int currentGameTime)
         {
             InitializeComponent();
-            
-            // Set initial value
+
             TimeInput.Text = currentGameTime.ToString();
-            
-            // Focus the text box for immediate user input
+
+            // Focus the text box
             Loaded += (s, e) => TimeInput.Focus();
         }
 
@@ -48,4 +47,4 @@ namespace MemoryGame.Views
             }
         }
     }
-} 
+}

@@ -5,21 +5,17 @@ namespace MemoryGame.Models
 {
     public class Game
     {
-        // User who saved the game
         public string Username { get; set; }
-        
-        // Basic game configuration
+
         public int SelectedCategory { get; set; }
         public int Rows { get; set; }
         public int Columns { get; set; }
-        
-        // Time information
+
         public int RemainingTimeInSeconds { get; set; }
         public int ElapsedTimeInSeconds { get; set; }
-        
-        // Board state
+
         public List<Card> Cards { get; set; }
-        
+
         public Game()
         {
             Username = string.Empty;
@@ -31,4 +27,4 @@ namespace MemoryGame.Models
             Cards = new List<Card>();
         }
     }
-} 
+}

@@ -11,12 +11,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
-        // Create and show the login window
+
         var loginWindow = new LoginWindow();
         loginWindow.Show();
-        
-        // Close the main window
+
         this.Close();
     }
 }

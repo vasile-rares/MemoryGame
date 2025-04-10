@@ -12,15 +12,13 @@ namespace MemoryGame.Views
         public GameWindow()
         {
             InitializeComponent();
-            // Create a default GameVM instance
             this.DataContext = new GameVM();
         }
-        
+
         public GameWindow(User user)
         {
             InitializeComponent();
-            // Create a GameVM with the user and set it as DataContext
             this.DataContext = new GameVM(user);
         }
     }
-} 
+}

@@ -7,7 +7,6 @@ using System.Windows.Input;
 
 namespace MemoryGame.Commands
 {
-    // Generic RelayCommand that accepts a parameter
     public class RelayCommand<T> : ICommand
     {
         private readonly Action<T> _execute;
@@ -56,7 +55,6 @@ namespace MemoryGame.Commands
                 return;
             }
 
-            // Try to convert the parameter
             try
             {
                 var convertedParameter = (T)Convert.ChangeType(parameter, typeof(T));
@@ -69,7 +67,6 @@ namespace MemoryGame.Commands
         }
     }
 
-    // Non-generic RelayCommand that doesn't require a parameter
     public class RelayCommand : ICommand
     {
         private readonly Action _execute;
@@ -97,4 +94,4 @@ namespace MemoryGame.Commands
             _execute();
         }
     }
-} 
+}

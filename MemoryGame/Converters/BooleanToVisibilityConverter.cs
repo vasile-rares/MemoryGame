@@ -7,12 +7,10 @@ namespace MemoryGame.Converters
 {
     public class BooleanToVisibilityConverter : IValueConverter
     {
-        // Definim o proprietate pentru a controla dacă logica este inversată
         public bool IsInverted { get; set; } = false;
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Verificăm dacă parametrul indică inversarea logicii
             bool shouldInvert = IsInverted;
             if (parameter is bool paramBool)
             {
@@ -25,7 +23,6 @@ namespace MemoryGame.Converters
 
             if (value is bool boolValue)
             {
-                // Ajustăm valoarea booleană dacă trebuie inversată
                 boolValue = shouldInvert ? !boolValue : boolValue;
                 return boolValue ? Visibility.Visible : Visibility.Collapsed;
             }
@@ -34,7 +31,6 @@ namespace MemoryGame.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Verificăm dacă parametrul indică inversarea logicii
             bool shouldInvert = IsInverted;
             if (parameter is bool paramBool)
             {
@@ -48,10 +44,9 @@ namespace MemoryGame.Converters
             if (value is Visibility visibility)
             {
                 bool result = visibility == Visibility.Visible;
-                // Inversăm rezultatul dacă este necesar
                 return shouldInvert ? !result : result;
             }
             return shouldInvert;
         }
     }
-} 
+}

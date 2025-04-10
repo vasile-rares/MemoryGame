@@ -11,25 +11,22 @@ namespace MemoryGame.Services
     public class GameSaveService
     {
         private readonly string _saveGameDirectory;
-        
+
         public GameSaveService()
         {
             var appDataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "MemoryGame"
             );
-            
+
             _saveGameDirectory = Path.Combine(appDataPath, "SavedGames");
             Directory.CreateDirectory(_saveGameDirectory);
         }
-        
-        /// <summary>
-        /// Saves the current game state for a specific user
-        /// </summary>
+
         public void SaveGame(
-            string username, 
-            int selectedCategory, 
-            int rows, 
+            string username,
+            int selectedCategory,
+            int rows,
             int columns,
             int remainingTimeInSeconds,
             int elapsedTimeInSeconds,
@@ -46,48 +43,39 @@ namespace MemoryGame.Services
                 ElapsedTimeInSeconds = elapsedTimeInSeconds,
                 Cards = cards.ToList()
             };
-            
+
             // Save the game to a file
             string filePath = GetSaveFilePath(username);
-            string json = JsonSerializer.Serialize(game, new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
+            string json = JsonSerializer.Serialize(game, new JsonSerializerOptions
+            {
+                WriteIndented = true
             });
-            
+
             File.WriteAllText(filePath, json);
         }
-        
-        /// <summary>
-        /// Loads a saved game for a specific user
-        /// </summary>
+
         public Game LoadGame(string username)
         {
             string filePath = GetSaveFilePath(username);
-            
+
             if (!File.Exists(filePath))
             {
                 return null;
             }
-            
+
             string json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<Game>(json);
         }
-        
-        /// <summary>
-        /// Checks if a saved game exists for a specific user
-        /// </summary>
+
         public bool HasSavedGame(string username)
         {
             string filePath = GetSaveFilePath(username);
             return File.Exists(filePath);
         }
-        
-        /// <summary>
-        /// Gets the save file path for a specific user
-        /// </summary>
+
         private string GetSaveFilePath(string username)
         {
             return Path.Combine(_saveGameDirectory, $"{username}.json");
         }
     }
-} 
+}

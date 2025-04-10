@@ -26,6 +26,7 @@ namespace MemoryGame.ViewModels
 
         // Services
         private readonly GameService _gameService;
+
         private readonly GameTimerService _timerService;
         private readonly DialogVM _dialogViewModel;
         private readonly GameSaveService _gameSaveService;
@@ -115,19 +116,10 @@ namespace MemoryGame.ViewModels
 
         public GameVM()
         {
-            // Initialize services
             _gameService = new GameService();
             _timerService = new GameTimerService();
             _dialogViewModel = new DialogVM();
             _gameSaveService = new GameSaveService();
-
-            // Subscribe to service events
-            _gameService.GameEnded += OnGameEnded;
-            _timerService.TimeUpdated += OnTimeUpdated;
-            _timerService.TimeExpired += OnTimeExpired;
-            
-            // Subscribe to the new CardFlipped event
-            _gameService.CardFlipped += OnCardFlipped;
 
             // Initialize cards collection
             Cards = new ObservableCollection<Card>();
@@ -142,18 +134,21 @@ namespace MemoryGame.ViewModels
             SetBoardSizeCommand = new RelayCommand<object>(ExecuteSetBoardSize);
             AboutCommand = new RelayCommand(ExecuteAbout);
             SelectCardCommand = new RelayCommand<object>(ExecuteSelectCard);
+
+            // Set up timer tick handler
+            _timerService.TimerTick += UpdateTimerDisplay;
         }
 
         public GameVM(User user) : this()
         {
             CurrentUser = user;
-            
+
             // Check if the user has a saved game
             if (_gameSaveService.HasSavedGame(user.Username))
             {
                 // Ask if the user wants to load the saved game
                 if (_dialogViewModel.ShowYesNoDialog(
-                    "You have a saved game. Do you want to load it?", 
+                    "You have a saved game. Do you want to load it?",
                     "Load Saved Game"))
                 {
                     ExecuteOpenGame();
@@ -161,20 +156,51 @@ namespace MemoryGame.ViewModels
             }
         }
 
-        #region Event Handlers
+        #region Game Commands
 
-        private void OnTimeUpdated(object sender, int remainingTime)
+        private void UpdateTimerDisplay()
         {
             RemainingTimeDisplay = _timerService.GetTimeDisplay();
             OnPropertyChanged(nameof(IsGameInProgress));
+
+            if (_timerService.RemainingTimeInSeconds <= 0)
+            {
+                EndGame(false);
+            }
         }
 
-        private void OnTimeExpired(object sender, EventArgs e)
+        private void FlipCard(Card card)
         {
-            _gameService.EndGame(false);
+            int cardIndex = Cards.IndexOf(card);
+            if (cardIndex >= 0)
+            {
+                // Replace the card with itself to trigger collection update
+                Card updatedCard = Cards[cardIndex];
+                Cards.RemoveAt(cardIndex);
+                Cards.Insert(cardIndex, updatedCard);
+            }
         }
 
-        private void OnGameEnded(object sender, bool isWon)
+        private void StartNewGame()
+        {
+            // Update active board dimensions to match selected dimensions
+            ActiveRows = SelectedRows;
+            ActiveColumns = SelectedColumns;
+
+            // Reset game ended state
+            IsGameEnded = false;
+
+            // Create the game board
+            Cards = _gameService.CreateGameBoard(SelectedRows, SelectedColumns, SelectedCategory);
+
+            // Start the game
+            _gameService.StartGame();
+            _timerService.Start();
+
+            OnPropertyChanged(nameof(IsGameInProgress));
+        }
+
+        private void EndGame(bool isWon)
         {
             _timerService.Stop();
             IsGameEnded = true;
@@ -185,7 +211,7 @@ namespace MemoryGame.ViewModels
             {
                 var userService = new UserService();
                 User updatedUser = userService.UpdateUserStatistics(CurrentUser.Username, isWon);
-                
+
                 if (updatedUser != null)
                 {
                     // Update current user
@@ -200,48 +226,12 @@ namespace MemoryGame.ViewModels
             }
         }
 
-        private void OnCardFlipped(object sender, Card card)
-        {
-            // Force UI update for the given card
-            int cardIndex = Cards.IndexOf(card);
-            if (cardIndex >= 0)
-            {
-                // Replace the card with itself to trigger collection update
-                Card updatedCard = Cards[cardIndex];
-                Cards.RemoveAt(cardIndex);
-                Cards.Insert(cardIndex, updatedCard);
-            }
-        }
-
-        #endregion Event Handlers
-
-        #region Game Commands
-
         private void ExecuteSelectCard(object parameter)
         {
             if (parameter is Card selectedCard)
             {
-                _gameService.SelectCard(selectedCard);
+                _gameService.SelectCard(selectedCard, FlipCard, EndGame);
             }
-        }
-
-        private void StartNewGame()
-        {
-            // Update active board dimensions to match selected dimensions
-            ActiveRows = SelectedRows;
-            ActiveColumns = SelectedColumns;
-            
-            // Reset game ended state
-            IsGameEnded = false;
-
-            // Create the game board
-            Cards = _gameService.CreateGameBoard(SelectedRows, SelectedColumns, SelectedCategory);
-
-            // Start the game
-            _gameService.StartGame();
-            _timerService.Start();
-
-            OnPropertyChanged(nameof(IsGameInProgress));
         }
 
         #endregion Game Commands
@@ -251,7 +241,7 @@ namespace MemoryGame.ViewModels
         private void ExecuteSelectCategory(object parameter)
         {
             SelectedCategory = int.Parse(parameter.ToString());
-            
+
             // Get the category name based on the selected category ID
             string categoryName;
             switch (SelectedCategory)
@@ -259,17 +249,20 @@ namespace MemoryGame.ViewModels
                 case 1:
                     categoryName = "Animals";
                     break;
+
                 case 2:
                     categoryName = "Flowers";
                     break;
+
                 case 3:
                     categoryName = "Fruits";
                     break;
+
                 default:
                     categoryName = $"Unknown ({SelectedCategory})";
                     break;
             }
-            
+
             _dialogViewModel.ShowMessage($"Category {categoryName} selected", "Category Selection");
         }
 
@@ -318,23 +311,28 @@ namespace MemoryGame.ViewModels
             SelectedColumns = savedGame.Columns;
             ActiveRows = savedGame.Rows;
             ActiveColumns = savedGame.Columns;
-            
+
             // Set the remaining time
             GameTimeInSeconds = savedGame.RemainingTimeInSeconds;
-            
-            // Create card collection from saved cards
-            ObservableCollection<Card> restoredCards = new ObservableCollection<Card>(savedGame.Cards);
+
+            // Create card collection from saved cards and reset all cards to unflipped
+            ObservableCollection<Card> restoredCards = new ObservableCollection<Card>();
+            foreach (var card in savedGame.Cards)
+            {
+                card.IsFlipped = false; // Reset card to unflipped state
+                restoredCards.Add(card);
+            }
             Cards = restoredCards;
-            
+
             // Start the game with the restored cards
             _gameService.StartGame(Cards);
-            
+
             // Start the timer
             _timerService.Start();
-            
+
             // Update UI
             OnPropertyChanged(nameof(IsGameInProgress));
-            
+
             _dialogViewModel.ShowMessage("Game loaded successfully!", "Game Loaded");
         }
 
@@ -346,17 +344,17 @@ namespace MemoryGame.ViewModels
                 _dialogViewModel.ShowMessage("No game in progress to save.", "Save Game");
                 return;
             }
-            
+
             // Check if current user is set
             if (CurrentUser == null)
             {
                 _dialogViewModel.ShowMessage("No user is logged in.", "Error", true);
                 return;
             }
-            
+
             // Calculate elapsed time
             int elapsedTimeInSeconds = GameTimeInSeconds - _timerService.RemainingTimeInSeconds;
-            
+
             // Save the game
             _gameSaveService.SaveGame(
                 CurrentUser.Username,
@@ -367,7 +365,7 @@ namespace MemoryGame.ViewModels
                 elapsedTimeInSeconds,
                 Cards
             );
-            
+
             _dialogViewModel.ShowMessage("Game saved successfully!", "Game Saved");
         }
 
@@ -419,20 +417,17 @@ namespace MemoryGame.ViewModels
             string size = parameter.ToString();
             if (size == "standard")
             {
-                // Just store the selected board size without starting a new game
                 SelectedRows = 4;
                 SelectedColumns = 4;
                 _dialogViewModel.ShowMessage("Standard 4x4 board selected. Changes will apply when you start a new game.", "Board Size");
             }
             else if (size == "custom")
             {
-                // Show custom size dialog
                 int rows = SelectedRows;
                 int columns = SelectedColumns;
 
                 if (_dialogViewModel.ShowCustomSizeDialog(ref rows, ref columns))
                 {
-                    // Just store the selected board size without starting a new game
                     SelectedRows = rows;
                     SelectedColumns = columns;
                     _dialogViewModel.ShowMessage($"Custom {SelectedRows}x{SelectedColumns} board selected. Changes will apply when you start a new game.", "Board Size");
@@ -446,7 +441,6 @@ namespace MemoryGame.ViewModels
 
         private void ExecuteAbout()
         {
-            // Show about information
             _dialogViewModel.ShowMessage(
                 "Memory Game\n\n" +
                 "Student: Rares-Mihail Vasile\n" +
