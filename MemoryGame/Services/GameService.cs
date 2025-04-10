@@ -100,7 +100,6 @@ namespace MemoryGame.Services
 
             selectedCard.IsFlipped = true;
 
-            // Notify about the card flipping
             onCardFlipped?.Invoke(selectedCard);
 
             if (_firstSelectedCard == null)
@@ -118,7 +117,6 @@ namespace MemoryGame.Services
                     _firstSelectedCard.IsMatched = true;
                     _secondSelectedCard.IsMatched = true;
 
-                    // Notify about match status change
                     onCardFlipped?.Invoke(_firstSelectedCard);
                     onCardFlipped?.Invoke(_secondSelectedCard);
 
@@ -137,22 +135,18 @@ namespace MemoryGame.Services
             }
             else if (_secondSelectedCard != null)
             {
-                // Third card - flip back the unmatched pair
                 if (!_firstSelectedCard.IsMatched)
                 {
                     _firstSelectedCard.IsFlipped = false;
-                    // Notify about flipping back
                     onCardFlipped?.Invoke(_firstSelectedCard);
                 }
 
                 if (!_secondSelectedCard.IsMatched)
                 {
                     _secondSelectedCard.IsFlipped = false;
-                    // Notify about flipping back
                     onCardFlipped?.Invoke(_secondSelectedCard);
                 }
 
-                // Set this card as the first selected card
                 _firstSelectedCard = selectedCard;
                 _secondSelectedCard = null;
             }

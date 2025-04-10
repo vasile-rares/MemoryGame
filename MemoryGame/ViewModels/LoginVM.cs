@@ -99,19 +99,16 @@ namespace MemoryGame.ViewModels
 
         private void DeleteUser()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
 
-            // Make a local copy to avoid reference issues
             var userToDelete = SelectedUser;
-
-            // Clear the selected user first to release any image references
             SelectedUser = null;
 
             // Force garbage collection to release file handles before deletion
             System.GC.Collect();
             System.GC.WaitForPendingFinalizers();
 
-            // Now delete the user
             _userService.DeleteUser(userToDelete);
             Users.Remove(userToDelete);
             _userService.SaveUsers(new List<User>(Users));
@@ -122,11 +119,9 @@ namespace MemoryGame.ViewModels
             if (SelectedUser == null)
                 return;
 
-            // Open the game window with the selected user
             var gameWindow = new GameWindow(SelectedUser);
             gameWindow.Show();
 
-            // Close the login window
             foreach (Window window in Application.Current.Windows)
             {
                 if (window is LoginWindow loginWindow)
