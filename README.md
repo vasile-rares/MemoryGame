@@ -36,7 +36,6 @@ The project follows the MVVM pattern with the following structure:
 
 -   .NET 8.0 SDK
 -   Visual Studio 2022 (recommended) or any IDE that supports .NET development
--   Windows OS (as the project uses WPF)
 
 ## 🚀 Setup Instructions
 
