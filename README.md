@@ -67,8 +67,6 @@ The project uses:
 
 -   WPF for the user interface
 -   MVVM pattern for clean architecture
--   XAML for UI design
--   C# for backend logic
 -   .NET 8.0 as the target framework
 
 ## 🤝 Contributing
